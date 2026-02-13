@@ -3,7 +3,7 @@
 // @namespace    Violentmonkey Scripts
 // @match        https://www.reddit.com/*
 // @grant        none
-// @version      2.0
+// @version      0.2.0
 // @description  🤵‍♂️ Label low-effort posts with configurable error rate, optionally fixes grammar
 // ==/UserScript==
 
