@@ -1,165 +1,63 @@
-Purple Tuxedo of Shame
+# Purple Tuxedo of Shame
 
-Label low-effort Reddit posts with configurable thresholds.
-Optionally fix grammar.
-Optionally nuke threads.
+## Overview
 
-Purple Tuxedo of Shame is a userscript (currently for Violentmonkey on Firefox) that evaluates Reddit comments and:
+The Purple Tuxedo of Shame is a comprehensive project designed to [explain brief description of what this project does]. This project aims to [explain the goals or visions behind the project].
 
-Suppresses weak top-level comments
+## Features
 
-Preserves threads rescued by strong replies
+- Feature 1: [Brief explanation of feature]
+- Feature 2: [Brief explanation of feature]
+- Feature 3: [Brief explanation of feature]
 
-Applies a visible shame label
+## Installation
 
-Optionally fixes basic grammar issues
+To install this project, follow these steps:
 
-Computes a configurable “Slop Density” score
+1. Clone the repository:
+   ```bash
+   git clone https://github.com/magnusribsskog/Purple-Tuxedo-of-Shame.git
+   ```
+2. Navigate to the project directory:
+   ```bash
+   cd Purple-Tuxedo-of-Shame
+   ```
+3. Install the dependencies:
+   ```bash
+   [Installation command]
+   ```
 
-Designed for modern Reddit (shreddit-* DOM structure).
+## Usage
 
-What It Does
-Thread Suppression (NukerEngine)
+After installation, you can run the project using the following command:
 
-Top-level comments are evaluated against configurable rules:
+```bash
+[Usage command]
+```
 
-Minimum character length
+## Contributing
 
-Optional grammar density threshold
+We welcome contributions! Please follow these steps to contribute:
+1. Fork the repository.
+2. Create a new branch:
+   ```bash
+   git checkout -b your-feature-branch
+   ```
+3. Make your changes and commit them.
+4. Push to the branch:
+   ```bash
+   git push origin your-feature-branch
+   ```
+5. Open a Pull Request.
 
-Structural heuristics
+## License
 
-If a top-level comment fails:
+This project is licensed under the [Your License] License - see the [LICENSE](LICENSE) file for details.
 
-If it has no strong replies, the thread is removed.
+## Contact
 
-If it has a strong reply, the thread survives and the top-level comment is visually marked instead.
+For any inquiries, please reach out to [Your Name - Contact Information].
 
-Grammar Scoring (GrammarService)
+---
 
-Optional subsystem that:
-
-Detects common grammar shortcuts (im, dont, youre, etc.)
-
-Scores irritation density relative to word count
-
-Applies flat penalties for stylistic issues (e.g., long all-lowercase posts)
-
-Shields quoted text from scoring
-
-Optionally auto-fixes detected issues
-
-It can attach a visible badge like:
-
-SLOP: 12.4
-
-Scoring is heuristic and intentionally opinionated.
-
-Visual Shame System
-
-When a comment is spared but deemed weak:
-
-A purple gradient highlight is applied
-
-A badge is inserted reading:
-
-Purple Tuxedo of Shame
-
-Direct style injection is used to remain resilient against Reddit DOM changes and Shadow DOM behavior.
-
-Configuration
-
-All tuning lives in the CONFIG object at the top of the script.
-
-Core Nuking Settings
-
-MIN_LENGTH — Minimum characters for top-level comments
-
-CHILD_MIN_LENGTH — Minimum characters for a reply to qualify as strong
-
-CHILD_MIN_WORDS — Word count requirement for strong replies
-
-SHOW_PLACEHOLDER — Show placeholder instead of silent removal
-
-REMOVE_DELAY — Delay before DOM removal
-
-Grammar Options
-
-ENABLE_GRAMMAR_FIXES — Apply regex-based corrections
-
-ENABLE_SCORE_DISPLAY — Attach visible slop score badge
-
-ENABLE_NUKE_BY_SCORE — Allow grammar score alone to trigger nuking
-
-SCORE_NUKE_THRESHOLD — Slop threshold for nuking
-
-ALL_LOWER_FLAT_PENALTY — Flat penalty for long all-lowercase posts
-
-ALL_LOWER_MIN_LEN — Minimum length before lowercase penalty applies
-
-Visual Settings
-
-SHAME_EMOJI — Emoji displayed in badge
-
-SHAME_LABEL — Badge text
-
-Strong Reply Criteria
-
-A reply must:
-
-Meet minimum character length
-
-Meet minimum word count
-
-Not be ALL CAPS
-
-Not be mostly symbols
-
-Contain meaningful text
-
-If a strong reply exists, the parent thread survives even if the top-level comment fails.
-
-Keyboard Toggle
-
-Ctrl + Shift + X
-
-Toggles placeholder visibility for removed comments.
-
-Installation (Current)
-
-Install Violentmonkey (Firefox recommended).
-
-Create a new userscript.
-
-Paste the script contents.
-
-Ensure it matches:
-
-https://www.reddit.com/
-*
-
-Future releases will include Firefox and Chrome extension packages.
-
-Known Limitations
-
-Scientific notation and math-heavy posts are mis-scored.
-
-Grammar density math is heuristic, not linguistically rigorous.
-
-Reddit DOM changes may break detection.
-
-Hero badge styling is defined but not reliably applied.
-
-Regex fixes may interfere with technical writing.
-
-Roadmap
-
-Scientific notation detection shield
-
-Hoverable slop label revealing original text
-
-Expanded punctuation abuse scoring
-
-Fix hero badge logic
-
-Optional upvote threshold exemption
+> **Note:** This README is a template. Make sure to fill in relevant sections to better describe the project.
