@@ -3,7 +3,7 @@
 // @namespace    Violentmonkey Scripts
 // @match        https://www.reddit.com/*
 // @grant        none
-// @version      2.0
+// @version      2.1
 // @description  🤵‍♂️ Label low-effort posts with configurable error rate, optionally fixes grammar
 // ==/UserScript==
 
@@ -46,7 +46,12 @@ const CONFIG = {
 
     // Visual
     SHAME_EMOJI: "🤵‍♂️",
-    SHAME_LABEL: " "
+    SHAME_LABEL: " ",
+    HERO_EMOJI: "⭐",
+    HERO_LABEL: " Hero",
+    
+    // Style application
+    APPLY_TUXEDO_STYLE: false,    // Set to false to avoid purple styling that propagates to entire thread
 };
 
 // ==================== GRAMMAR SERVICE ====================
@@ -277,25 +282,9 @@ const NukerEngine = {
         }, CONFIG.REMOVE_DELAY);
     },
 
-    // Apply shame tuxedo (direct style, no CSS class dependency)
-    applyShame(comment, cleanText) {
+    // Apply tuxedo badge only (no background styling that propagates)
+    applyShameBadge(comment, cleanText) {
         comment.setAttribute('data-shamed', 'true');
-
-        // Direct style application - Shadow DOM proof
-        const styles = {
-            'background': 'linear-gradient(to right, rgba(128, 0, 128, 0.12), rgba(128, 0, 128, 0.03))',
-            'border-left': '4px solid #9b4d96',
-            'border-top': 'none',
-            'border-right': 'none',
-            'border-bottom': 'none',
-            'box-shadow': 'inset 0 0 0 1px rgba(128, 0, 128, 0.2)',
-            'position': 'relative',
-            'border-radius': '0 4px 4px 0'
-        };
-
-        Object.entries(styles).forEach(([prop, val]) => {
-            comment.style.setProperty(prop, val, 'important');
-        });
 
         // Add badge if not already present
         if (!comment.querySelector('.shame-badge')) {
@@ -304,7 +293,7 @@ const NukerEngine = {
             badge.innerHTML = `${CONFIG.SHAME_EMOJI} ${CONFIG.SHAME_LABEL}`;
             badge.style.cssText = `
                 display: inline-block !important;
-                background: purple !important;
+                background: #9b4d96 !important;
                 color: white !important;
                 font-size: 0.7em !important;
                 font-weight: bold !important;
@@ -320,7 +309,37 @@ const NukerEngine = {
             comment.insertBefore(badge, comment.firstChild);
         }
 
-        console.log(`[Nuker] 🟣 Shame applied to: "${cleanText.slice(0, 30)}..."`);
+        console.log(`[Nuker] 🟣 Shame badge applied to: "${cleanText.slice(0, 30)}..."`);
+    },
+
+    // Apply hero badge to the comment that saved the thread
+    applyHeroBadge(comment) {
+        if (comment.querySelector('.hero-badge')) return;
+
+        const badge = document.createElement('span');
+        badge.className = 'hero-badge';
+        badge.innerHTML = `${CONFIG.HERO_EMOJI}${CONFIG.HERO_LABEL}`;
+        badge.style.cssText = `
+            display: inline-block !important;
+            background: #b8860b !important;
+            color: white !important;
+            font-size: 0.7em !important;
+            font-weight: bold !important;
+            padding: 2px 8px !important;
+            border-radius: 12px !important;
+            margin-right: 8px !important;
+            margin-bottom: 4px !important;
+            letter-spacing: 0.5px !important;
+            text-transform: uppercase !important;
+            border: 1px solid rgba(255,255,255,0.3) !important;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.3) !important;
+        `;
+        comment.insertBefore(badge, comment.firstChild);
+        
+        // Also add a subtle visual indicator to highlight the hero comment
+        comment.classList.add('hero-reply');
+        
+        console.log(`[Nuker] ⭐ Hero badge applied to saving comment`);
     },
 
     // Check if a reply is strong enough to save the thread
@@ -389,17 +408,20 @@ const processComment = (comment) => {
         const strongReply = children.find(NukerEngine.isStrongReply);
 
         if (strongReply) {
-            // Strong comment saves the thread - Apply tuxedo to top-level comment instead of supressing the entire thread
+            // Strong comment saves the thread - Apply tuxedo badge to top-level comment (no background styling)
             if (CONFIG.ENABLE_GRAMMAR_FIXES && changeCount > 0) {
                 textContainer.innerText = fixedText;
             }
-            NukerEngine.applyShame(comment, cleanText);
+            NukerEngine.applyShameBadge(comment, cleanText);
+            
+            // Apply hero badge to the comment that saved the thread
+            NukerEngine.applyHeroBadge(strongReply);
+            
             comment.setAttribute('data-processed', 'true');
         } else {
             // No hero? Nuke it once.
             const reason = isTooSloppy ? `Slop (${score.toFixed(1)}%)` : `Short (${cleanText.length} chars)`;
             NukerEngine.nuke(comment, reason);
-            
         }
     } else {
         // Comment survives! Apply fixes and mark as done
@@ -431,9 +453,10 @@ const start = () => {
             document.querySelectorAll('shreddit-comment').forEach(processComment);
         }, 2000);
 
-        console.log(`🤵‍♂️ Purple Tuxedo of Shame v2.0 Active`);
+        console.log(`🤵‍♂️ Purple Tuxedo of Shame v2.1 Active`);
         console.log(`   Nuke: <${CONFIG.MIN_LENGTH} chars | Save threshold: ${CONFIG.CHILD_MIN_LENGTH} chars / ${CONFIG.CHILD_MIN_WORDS} words`);
         if (CONFIG.ENABLE_GRAMMAR_FIXES) console.log(`   Grammar fixes: ON | Score display: ${CONFIG.ENABLE_SCORE_DISPLAY ? 'ON' : 'OFF'}`);
+        console.log(`   Using badge-only mode (no purple background styling)`);
     } else {
         setTimeout(start, 500);
     }
@@ -441,7 +464,6 @@ const start = () => {
 
 // ==================== STYLES ====================
 
-// Saved the thread badge no longer applied successfully. Unclear why
 const style = document.createElement('style');
 style.textContent = `
     .nuked-short-comment { display: none !important; }
@@ -458,18 +480,6 @@ style.textContent = `
     .hero-reply {
         border-left: 3px solid #ffd700 !important;
         background: rgba(255,215,0,0.03) !important;
-    }
-    .hero-reply::before {
-        content: "⭐ Saved the thread";
-        display: inline-block;
-        background: #b8860b;
-        color: white;
-        font-size: 0.7em;
-        font-weight: bold;
-        padding: 2px 8px;
-        border-radius: 12px;
-        margin-right: 8px;
-        margin-bottom: 4px;
     }
 `;
 document.head.appendChild(style);
