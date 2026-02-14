@@ -19,26 +19,25 @@
 /**
  * To Do
  * Add detection logic for scientific notation, so we can refrain from scoring and "fixing" these
- * Make it so the "slop label is hooverable and displays the unfixed text"
  * Expand the GrammarService to handle punctuation abuse. Excessive exlamation and question marks, running dots other than 3, improper interrobang
- * Figure out why the Hero Badge is no longer ever applied. (It looks right, and it isn't throwing errors)
+ * The Hero Badge isn't applying, and that's fine. Decide wether to rip it out, or make it a toggle
  * Consider implementing a cutoff for visually fixing posts based on a upvote treshold. (If something has a very high score, we might be better off not touching it. Unclear.)
- *
+
  * */
 
 // ==================== CONFIG ====================
 
 const CONFIG = {
     // Nuker settings
-    MIN_LENGTH: 50,
+    MIN_LENGTH: 200,
     CHILD_MIN_LENGTH: 300,
     CHILD_MIN_WORDS: 35,
-    SHOW_PLACEHOLDER: true,      // Set to true to see how many threads are nuked outside the log. This can be useful when tuning settings
+    SHOW_PLACEHOLDER: false,      // Set to true to see how many threads are nuked outside the log. This can be useful when tuning settings
     REMOVE_DELAY: 100,            // Don't touch this one without being very careful. There is a LOT of wrangling of the Reddit layout going on, and some of it might "seem" unneeded, but very much is
 
     // Grammar settings (optional feature)
     ENABLE_GRAMMAR_FIXES: true,  // When true, all the regex in the GrammarService will be applied to all text outside of quotation blocks (This probably breaks scientific notation)
-    ENABLE_SCORE_DISPLAY: true,  // A label is applied to a top level comment if there is a child comment that is successfully strong that the thread should not be supressed
+    ENABLE_SCORE_DISPLAY: false,  // A label is applied to a top level comment if there is a child comment that is successfully strong that the thread should not be supressed
     ENABLE_NUKE_BY_SCORE: true, // This allows the detected error rate alone to be sufficient to suppress a top level comment. It's not good enough at this time
     SCORE_NUKE_THRESHOLD: 15,     // Higher is more forgiving. Input range 1-100.
     ALL_LOWER_FLAT_PENALTY: 4,   // This is a flat score applied after the ratio is calculated. Flat scoring makes sense for poor style choices and is additive to the ratio
@@ -47,7 +46,7 @@ const CONFIG = {
 
     // Visual
     SHAME_EMOJI: "🤵‍♂️",
-    SHAME_LABEL: "Purple Tuxedo of Shame"
+    SHAME_LABEL: " "
 };
 
 // ==================== GRAMMAR SERVICE ====================
@@ -55,27 +54,37 @@ const CONFIG = {
 
 const GrammarService = {
     fixes: {
-        "dont":     { fix: "don't",     score: 6 },
-        "im":       { fix: "I'm",       score: 6 },
-        "shes":     { fix: "she's",     score: 4 },
-        "hes":      { fix: "he's",      score: 5 },
-        "cant":     { fix: "can't",     score: 4 },
-        "wont":     { fix: "won't",     score: 4 },
-        "arent":    { fix: "aren't",    score: 4 },
-        "isnt":     { fix: "isn't",     score: 5 },
-        "didnt":    { fix: "didn't",    score: 5 },
-        "couldnt":  { fix: "couldn't",  score: 4 },
-        "shouldnt": { fix: "shouldn't", score: 4 },
-        "wouldnt":  { fix: "wouldn't",  score: 4 },
-        "theyre":   { fix: "they're",   score: 6 },
-        "youre":    { fix: "you're",    score: 6 },
-        "havent":   { fix: "haven't",   score: 5 },
-        "idk":      { fix: "I don't know", score: 2 },
-        "idc":      { fix: "I don't care", score: 4 },
-        "tbh":      { fix: "to be honest", score: 1 },
-        "imo":      { fix: "in my opinion", score: 3 },
-        "ikr":      { fix: "I know right", score: 5 },
-        "rn":       { fix: "right now",    score: 5 },
+        // --- Contractions & Grammar ---
+        "arent":    { fix: "aren't",     score: 4 },
+        "cant":     { fix: "can't",      score: 4 },
+        "couldnt":  { fix: "couldn't",   score: 2 },
+        "didnt":    { fix: "didn't",     score: 5 },
+        "dont":     { fix: "don't",      score: 6 },
+        "havent":   { fix: "haven't",    score: 2 },
+        "hes":      { fix: "he's",       score: 5 },
+        "i":        { fix: "I",          score: 4 },
+        "im":       { fix: "I'm",        score: 6 },
+        "isnt":     { fix: "isn't",      score: 5 },
+        "shes":     { fix: "she's",      score: 4 },
+        "shouldnt": { fix: "shouldn't",  score: 2 },
+        "theyre":   { fix: "they're",    score: 5 },
+        "wont":     { fix: "won't",      score: 4 },
+        "wouldnt":  { fix: "wouldn't",   score: 2 },
+        "youre":    { fix: "you're",     score: 6 },
+
+        // --- Acronyms & Slang ---
+        "cuz":      { fix: "because",        score: 4 },
+        "idc":      { fix: "I don't care",   score: 2 },
+        "idk":      { fix: "I don't know",   score: 1 },
+        "ikr":      { fix: "I know, right",  score: 4 },
+        "imo":      { fix: "in my opinion",  score: 1 },
+        "kinda":    { fix: "kind of",        score: 1 },
+        "r":        { fix: "are",            score: 4 },
+        "rn":       { fix: "right now",      score: 6 },
+        "tbh":      { fix: "to be honest",   score: 1 },
+        "u":        { fix: "you",            score: 2 },
+        "ur":       { fix: "your",           score: 5 },
+        "wanna":    { fix: "want to",        score: 2 },
     },
 
     // Strip quoted text (blockquotes and inline quotes) for fair scoring
@@ -218,8 +227,7 @@ const GrammarService = {
             this.attachScoreBadge(comment, finalScore);
         }
 
-        // Note: Nuking is now handled exclusively by the main processor.
-        // GrammarService does NOT call NukerEngine.nuke.
+        // GrammarService does NOT call NukerEngine.nuke. fixing thins resolved a bug, do not reimplement without a very good reason.
 
         return { fixedText, changeCount, score: finalScore };
     },
@@ -252,7 +260,7 @@ const GrammarService = {
 
 // ==================== NUKER ENGINE ====================
 const NukerEngine = {
-    // Core nuke function - can be called from anywhere
+    // Core nuke function
     nuke(comment, reason = '') {
         console.log(`[Nuker] 🔥 Nuking: ${reason}`.trim());
         comment.classList.add('nuked-short-comment');
@@ -391,7 +399,7 @@ const processComment = (comment) => {
             // No hero? Nuke it once.
             const reason = isTooSloppy ? `Slop (${score.toFixed(1)}%)` : `Short (${cleanText.length} chars)`;
             NukerEngine.nuke(comment, reason);
-            // Element is gone, no need to set data-processed
+            
         }
     } else {
         // Comment survives! Apply fixes and mark as done
