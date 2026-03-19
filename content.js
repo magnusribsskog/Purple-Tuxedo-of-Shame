@@ -2,7 +2,7 @@
 // @name         Purple Tuxedo of Shame - 4.2.3
 // @namespace    http://tampermonkey.net/
 // @version      4.2.3
-// @description  Nukes low-effort comments, rewards heroes on Reddit
+// @description  Hides low-effort Reddit comments and highlights substantive replies.
 // @author       Magnus Ribsskog
 // @match        https://www.reddit.com/*
 // @grant        GM_getValue
