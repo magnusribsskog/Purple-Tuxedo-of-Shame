@@ -14,7 +14,13 @@
 /*
  * Purple Tuxedo of Shame
  * ======================
- * Hides low-effort Reddit comments and highlights substantive replies.
+ * The core functionality of this script is to hide Reddit threads where the
+ * thread starter post is very short or has bad grammar. The main exception is
+ * if there is a strong reply in the thread, in which instead of hiding the thread,
+ * the top post, and the strong reply, both become clearly marked. The script does
+ * not hide anything based on censorship rules. Foul language, racism, and all that
+ * nonsense is out of scope. The script tries to target low effort, and basic lack of
+ * grammar.
  *
  * A comment is judged on two axes:
  *   - Length: must meet MIN_LENGTH characters.
