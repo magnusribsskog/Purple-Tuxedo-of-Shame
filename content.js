@@ -2,7 +2,7 @@
 // @name         Purple Tuxedo of Shame - 4.2.3
 // @namespace    http://tampermonkey.net/
 // @version      4.2.3
-// @description  Hides low-effort Reddit comments and highlights substantive replies.
+// @description  Nukes low-effort comments, rewards heroes on Reddit
 // @author       Magnus Ribsskog
 // @match        https://www.reddit.com/*
 // @grant        GM_getValue
@@ -14,13 +14,7 @@
 /*
  * Purple Tuxedo of Shame
  * ======================
- * The core functionality of this script is to hide Reddit threads where the
- * thread starter post is very short or has bad grammar. The main exception is
- * if there is a strong reply in the thread, in which instead of hiding the thread,
- * the top post, and the strong reply, both become clearly marked. The script does
- * not hide anything based on censorship rules. Foul language, racism, and all that
- * nonsense is out of scope. The script tries to target low effort, and basic lack of
- * grammar.
+ * Hides low-effort Reddit comments and highlights substantive replies.
  *
  * A comment is judged on two axes:
  *   - Length: must meet MIN_LENGTH characters.
@@ -44,12 +38,10 @@
  * Changelog
  * ---------
  * v4.2.3
- *    - Fixed Treewalker to correctly handle very short comments do to how Shreddit concatenates these.
- *      Three issues:
-         1 Reddit using an empty-id wrapper element that groups a comment and all its replies into a single <shreddit-comment>
-         2 The walker having no concept of "stop at the comment boundary"
-         3 The inflated text length accidentally passing the very check that was supposed to catch it
- *
+ *   - ProcessComment now gates on isTopLevel before any extraction or scoring.
+ *     Replies are marked processed and returned immediately, preventing the
+ *     IntersectionObserver from re-queuing them on every scroll event.
+ 
  * v4.2.2
  *   - Fixed regex lastIndex bug: shared global regexes now reset lastIndex = 0
  *     before each while/exec loop, preventing silent match misses on the second
@@ -237,10 +229,10 @@
         // a) Stop at child <shreddit-comment> elements. Without this, the walker
         //    crosses into reply comments and concatenates their text alongside the
         //    parent's, producing a falsely long string that passes the length check.
-        //    Before this fix comments like "Cry" survived — its replies pushed the total
+        //    This is what allowed "Cry" to survive — its replies pushed the total
         //    well past MIN_LENGTH.
         //
-        // b) Skip UI: username, timestamp, "Reply", "Share", "more replies"
+        // b) Skip UI chrome: username, timestamp, "Reply", "Share", "more replies"
         //    and similar interface strings that live as text nodes in the same wrapper
         //    and are not comment prose.
         const uiChromePattern = /^(reply|share|more replies|save|report|follow|•|\d+)$/i;
@@ -785,6 +777,15 @@
             // already handled, so we never process the same comment twice.
             if (comment.hasAttribute('data-processed')) return;
 
+            // Replies are never nuked or shamed directly — they exist only as
+            // potential heroes for their parent. Mark and exit immediately so the
+            // IntersectionObserver does not re-queue them on every scroll event.
+            const isTopLevel = !comment.parentElement?.closest('shreddit-comment');
+            if (!isTopLevel) {
+                comment.setAttribute('data-processed', 'true');
+                return;
+            }
+
             const rawText   = extractCommentText(comment);
             const cleanText = rawText.replace(/\s+/g, ' ').trim();
 
@@ -814,10 +815,6 @@
             const analysis = GrammarService.analyze(rawText);
             const score    = GrammarService.computeScore(analysis);
 
-            // A top-level comment has no <shreddit-comment> ancestor.
-            // We only nuke or shame top-level comments — replies are judged
-            // differently (they can be heroes, but are never nuked directly).
-            const isTopLevel  = !comment.parentElement?.closest('shreddit-comment');
             const isTooShort  = cleanText.length < CONFIG.MIN_LENGTH;
             const isTooSloppy = CONFIG.ENABLE_NUKE_BY_SCORE && score >= CONFIG.SCORE_NUKE_THRESHOLD;
 
@@ -829,7 +826,7 @@
             // Optionally show the numeric slop score (useful for threshold tuning).
             GrammarService.attachScoreBadge(comment, score);
 
-            if (isTopLevel && (isTooShort || isTooSloppy)) {
+            if (isTooShort || isTooSloppy) {
                 // Check if any direct reply qualifies as a hero.
                 const children    = this.getDirectChildren(comment);
                 const strongReply = children.find(c => this.isStrongReply(c));
