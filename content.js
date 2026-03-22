@@ -78,10 +78,10 @@
         // --- Scoring weights -------------------------------------------------
         // These four must add up to 1.0. They control how much each type of
         // badness contributes to the final slop score.
-        WEIGHT_GRAMMAR:     0.5,   // Missing apostrophes, lowercase "i", etc.
+        WEIGHT_GRAMMAR:     0.6,   // Missing apostrophes, lowercase "i", etc.
         WEIGHT_SLANG:       0.3,   // "ur", "rn", "idk", "wanna", etc.
         WEIGHT_STYLE:       0.1,   // No sentence capitalisation, all-lowercase walls of text.
-        WEIGHT_PUNCTUATION: 0.1,   // No terminal punctuation, excessive emoji density.
+        WEIGHT_PUNCTUATION: 0.0,   // No terminal punctuation, excessive emoji density.
 
         // --- Nuke thresholds -------------------------------------------------
         // A comment must fail at least one of these to be considered for hiding.
