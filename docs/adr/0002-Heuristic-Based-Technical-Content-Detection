@@ -1,13 +1,19 @@
-Implementation Pending
-Date: 2026-03-19
-Context
-Users frequently post code snippets, mathematical formulas, or file paths without using Markdown backticks. The PlaceholderProtector already shields properly formatted code, but unformatted technical content bypasses this protection entirely. GrammarService then treats operator-heavy text as prose and either scores it incorrectly or applies fixes that corrupt the content — capitalising after an equals sign, penalising missing apostrophes in variable names, and so on.
-This is a false positive problem: we are penalising a commenter for not following Markdown conventions rather than for writing lazily.
-Decision
-Do not implement a binary bypass at this time. The operator set [+ - = / * % < >] appears too frequently in normal prose to serve as a reliable signal at any fixed count threshold. A raw count of 3–4 instances will produce false negatives on legitimate comments that happen to contain comparisons, statistics, or arithmetic in passing.
-Instead, establish the following principles to guide a future implementation:
-
-Detection should be density-based, normalised by word count, following the precedent set in ADR 0001. A 500-word comment with 4 operators is prose. A 15-word comment with 4 operators probably isn't.
-The operator set should be narrowed to sequences that are unambiguous outside of technical writing: =>, ===, !==, ->, ::, and patterns like word( or [index]. Single-character operators like +, <, and % are not sufficient signal alone.
-The consequence should be graduated, not binary. A comment that clears the technical threshold should receive reduced penalties and no grammar fixes, but should not receive unconditional immunity from length-based hiding. A one-line comment consisting entirely of a code snippet with no surrounding explanation is still a low-effort comment.
-The PlaceholderProtector is the correct long-term home for this logic — expanding its pattern set to catch common unformatted technical patterns is preferable to adding a separate detection pass in GrammarService.
+Implementation Pending Date: 2026-03-19 Context Users frequently post code snippets, mathematical formulas, or file paths without using Markdown
+backticks. The PlaceholderProtector already shields properly formatted code, but unformatted technical content bypasses this protection entirely.
+GrammarService then treats operator-heavy text as prose and either scores it incorrectly or applies fixes that corrupt the content — capitalising
+after an equals sign, penalising missing apostrophes in variable names, and so on. This is a false positive problem: we are penalising a commenter for
+not following Markdown conventions rather than for writing lazily. Decision Do not implement a binary bypass at this time. The operator set [+ - = / *
+% < >] appears too frequently in normal prose to serve as a reliable signal at any fixed count threshold. A raw count of 3–4 instances will produce
+false negatives on legitimate comments that happen to contain comparisons, statistics, or arithmetic in passing. Instead, establish the following
+principles to guide a future implementation: Detection should be density-based, normalised by word count, following the precedent set in ADR 0001. A
+500-word comment with 4 operators is prose. A 15-word comment with 4 operators probably isn't. The operator set should be narrowed to sequences that
+are unambiguous outside of technical writing: =>, ===, !==, ->, ::, and patterns like word( or [index]. Single-character operators like +, <, and %
+are not sufficient signal alone. The consequence should be graduated, not binary. A comment that clears the technical threshold should receive reduced
+penalties and no grammar fixes, but should not receive unconditional immunity from length-based hiding. A one-line comment consisting entirely of a
+code snippet with no surrounding explanation is still a low-effort comment. The PlaceholderProtector is the correct long-term home for this logic —
+expanding its pattern set to catch common unformatted technical patterns is preferable to adding a separate detection pass in GrammarService. On
+per-sentence detection: A per-sentence approach is not computationally expensive — it amounts to splitting on sentence boundaries and running the
+existing technical sniff test per segment rather than per comment, which is linear growth at worst. The complexity is logical rather than
+computational: a mixed comment (part prose, part unformatted code) requires a decision about how to weight the two halves. A reasonable starting
+position would be to score only the prose segments and skip fixes on the technical segments, treating them as independent units. This is worth
+revisiting once the single-pass detection is validated and stable.
