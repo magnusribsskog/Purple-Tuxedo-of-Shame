@@ -1,0 +1,16 @@
+{
+  "manifest_version": 3,
+  "name": "Purple Tuxedo of Shame",
+  "version": "4.3.0",
+  "description": "Hides low-effort Reddit comments and highlights substantive replies.",
+  "host_permissions": [
+    "https://www.reddit.com/*"
+  ],
+  "content_scripts": [
+    {
+      "matches": ["https://www.reddit.com/*"],
+      "js": ["grammar-fixer.js", "content.js"],
+      "run_at": "document_idle"
+    }
+  ]
+}
