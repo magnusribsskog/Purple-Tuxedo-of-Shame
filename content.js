@@ -498,7 +498,18 @@
             const rawText   = extractCommentText(comment);
             const cleanText = rawText.replace(/\s+/g, ' ').trim();
 
+            // Reddit collapses the DOM for very short comments — extraction returns empty.
+            // The collapsed state is itself the signal: treat as too short, but still
+            // check for a hero reply before nuking.
             if (!cleanText || cleanText.length < 3) {
+                const children    = this.getDirectChildren(comment);
+                const strongReply = children.find(c => this.isStrongReply(c));
+                if (strongReply) {
+                    this.applyShameBadge(comment);
+                    this.applyHeroBadge(strongReply);
+                } else {
+                    this.hideComment(comment, 'Collapsed');
+                }
                 comment.setAttribute('data-processed', 'true');
                 return;
             }
