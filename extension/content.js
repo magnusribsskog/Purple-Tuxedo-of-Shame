@@ -54,7 +54,13 @@
  * v4.2.1
  *   - Reordered selectors in extractCommentText() to prioritise modern Reddit
  *     elements (shreddit-text, .RichTextJSON-root, faceplate-formatted-text).
- *   - Added temporary debug logging for short extracted texts.
+ *
+ * v4.2.4
+ *   - Fixed short comments surviving length filter. Strategies 1 and 2 in
+ *     extractCommentText() were rejecting legitimate short texts (< 20 chars)
+ *     and falling through to strategy 3, which leaked child comment text into
+ *     the extraction and inflated apparent length past MIN_LENGTH. Threshold
+ *     changed to > 0: if the element is found and non-empty, that is the text.
  */
 
 (function () {
@@ -137,7 +143,8 @@
     // see inside shadow roots, so we need to check there explicitly first.
     //
     // The function tries three strategies in order, returning as soon as it finds
-    // something that looks like real text (> 20 characters):
+    // a non-empty result from a known element. Strategy 3 is only reached when
+    // no known element can be found at all.
     //
     //   1. Shadow DOM: access comment.shadowRoot and look for known elements inside it.
     //   2. Light DOM: look for the same elements as direct children of the comment
@@ -163,7 +170,7 @@
 
             for (const el of candidates) {
                 const txt = getElementText(el).trim();
-                if (txt.length > 20) return txt;
+                if (txt.length > 0) return txt;
             }
         }
 
@@ -182,7 +189,7 @@
             const el = comment.querySelector(sel);
             if (el) {
                 const txt = getElementText(el).trim();
-                if (txt.length > 20) return txt;
+                if (txt.length > 0) return txt;
             }
         }
 
