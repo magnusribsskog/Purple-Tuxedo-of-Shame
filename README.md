@@ -105,7 +105,7 @@ on each comment (green = low score, red = high score).
 ## Configuration
 
 All tunable values are in the `DEFAULT_CONFIG` object near the top of the
-script. Edit them directly and reload the page.
+content.js file. Edit them directly and reload the page.
 
 ```js
 const DEFAULT_CONFIG = {
@@ -177,42 +177,6 @@ each new comment with the `IntersectionObserver` when it appears.
 
 ---
 
-## Code structure
-
-```
-purple-tuxedo-4.2.2.user.js
-│
-├── DEFAULT_CONFIG          All tunable values. Edit here.
-│
-├── extractCommentText()    Gets the text of a comment element.
-│                           Handles Shadow DOM, light DOM, and raw text nodes.
-│
-├── PlaceholderProtector    Temporarily replaces code, URLs, quotes, and math
-│                           with tokens before scoring/fixing, then restores them.
-│
-├── GrammarService          Language detection, scoring, grammar fixes, score badge.
-│   ├── detectLanguage()    Is this an English-language thread?
-│   ├── analyze()           Scans text and returns raw error point totals.
-│   ├── computeScore()      Normalises raw points into a single slop score.
-│   ├── applyFixesToTextNode()  Rewrites a single text node to fix errors.
-│   └── attachScoreBadge()  Adds a coloured SLOP N badge (debug mode).
-│
-├── NukerEngine             Applies outcomes to comment elements.
-│   ├── processComment()    Main entry point. Orchestrates all decisions.
-│   ├── getCommentScore()   Reads the upvote count from a comment element.
-│   ├── hasUpvoteImmunity() Returns true if the comment is too popular to touch.
-│   ├── isStrongReply()     Returns true if a reply qualifies as a hero.
-│   ├── hideComment()       Adds the CSS class that hides a comment.
-│   ├── applyShameBadge()   Adds the purple shame badge.
-│   ├── applyHeroBadge()    Adds the gold hero badge.
-│   └── applyFixesToTextNodes() Walks text nodes and calls GrammarService on each.
-│
-└── CommentProcessor        Watches the page for new/visible comments.
-    ├── MutationObserver    Detects new comment elements added to the DOM.
-    └── IntersectionObserver  Triggers processing when a comment nears the viewport.
-```
-
----
 
 ## Known limitations
 
@@ -227,32 +191,32 @@ purple-tuxedo-4.2.2.user.js
   `processComment()` may need updating. This is an accepted maintenance cost
   for a private tool.
 
-- **The settings panel (Ctrl+Shift+P) is a placeholder.** It displays correctly
-  but has a minor display bug on first open. Edit `DEFAULT_CONFIG` directly
-  instead.
-
 - **Grammar fixes are English-only.** The fix dictionary is English. The script
   skips fixing on threads it does not identify as English, but the dictionary
   would need language-specific versions to work properly on other languages.
+  However, the grammar service has been split into it's own file, and creating
+  the same functionality for other languages should be fairly trivial.
 
 ---
 
 ## Possible future work
 
-- Language packs for Norwegian, German, French, and Spanish (would require
+- Language packs for multiple language support running at the same time
+  Norwegian, German, French, and Spanish (would require
   per-comment language detection rather than per-thread).
-- Conversion to a proper browser extension with a working settings UI.
+
 - Extracting `GrammarService` as a plugin interface so language packs can be
   loaded independently.
 
-None of this is planned in the near term. The script works well as a
-Tampermonkey userscript and the logic is still being tuned.
+- Currently configuration is done directly in code, instead of in a UI.
+
 
 ---
 
 ## Version history
 
 | Version | Summary |
+| 4.2.4 | Refactored from violentmonkey userscript to Chrome extension | 
 | 4.2.3 | Fixed Treewalker boundries |
 | 4.2.2 | Fixed regex lastIndex bug, fixed k/M upvote parsing, removed stale child cache |
 | 4.2.1 | Reordered Shadow DOM selectors, added debug logging for short extractions |
