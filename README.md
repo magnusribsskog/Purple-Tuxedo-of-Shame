@@ -1,6 +1,6 @@
 # Purple Tuxedo of Shame
 
-A Tampermonkey userscript that hides low-effort Reddit comments and highlights
+An extension for Chrome that hides low-effort Reddit comments and highlights
 substantive replies. Written primarily as a personal quality-of-life tool.
 
 > **Honest disclosure:** This project is a collaboration between me and Claude
@@ -15,7 +15,7 @@ substantive replies. Written primarily as a personal quality-of-life tool.
 ## What it does
 
 When you load a Reddit thread, the script evaluates every top-level comment
-against two criteria:
+against two criteria, after first determining if the text is English:
 
 **Length** — comments below `MIN_LENGTH` characters (default: 200) are
 considered too short to be worth reading.
@@ -28,8 +28,12 @@ A comment that fails either check can have one of two things happen to it:
 
 - If one of its direct replies is long and well-written enough to qualify as a
   **hero reply**, the parent comment gets a purple shame badge 🤵‍♂️ and the
-  reply gets a gold star badge ⭐. The idea is to reward people who bother to
-  respond substantively to lazy comments.
+  reply gets a gold star badge ⭐. The idea is to visually indicate comments who bother to
+  respond substantively to lazy comments, because this sometimes implies that despite
+  being very short, or riddled with grammar and spelling issues, top level comments
+  might be worth reading. The substantive reply becomes a probable indicator
+  that there is soemthing worth reading, because someone took the time to reply
+  properly. 
 
 - If no hero reply exists, the comment is **hidden entirely** (CSS
   `display:none`). It is not deleted, and Reddit's data is not touched — it just
