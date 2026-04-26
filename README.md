@@ -28,12 +28,10 @@ A comment that fails either check can have one of two things happen to it:
 
 - If one of its direct replies is long and well-written enough to qualify as a
   **hero reply**, the parent comment gets a purple shame badge 🤵‍♂️ and the
-  reply gets a gold star badge ⭐. The idea is to visually indicate comments who bother to
-  respond substantively to lazy comments, because this sometimes implies that despite
-  being very short, or riddled with grammar and spelling issues, top level comments
-  might be worth reading. The substantive reply becomes a probable indicator
-  that there is soemthing worth reading, because someone took the time to reply
-  properly. 
+  reply gets a gold star badge ⭐. The idea is that a substantive reply is a
+  probable indicator that the parent is worth reading — someone took the time
+  to engage properly, which suggests there is something there despite the short
+  length or poor grammar.
 
 - If no hero reply exists, the comment is **hidden entirely** (CSS
   `display:none`). It is not deleted, and Reddit's data is not touched — it just
@@ -75,7 +73,7 @@ Raw points are divided by word count and multiplied by 100 to get a
 *density* — errors per 100 words. This means a 500-word comment with five
 errors scores the same as a 100-word comment with one error.
 
-The four densities are then combined using the weights from `DEFAULT_CONFIG`:
+The four densities are then combined using the weights from `CONFIG`:
 
 ```
 score = grammar_density   × WEIGHT_GRAMMAR     (0.5)
@@ -95,20 +93,21 @@ on each comment (green = low score, red = high score).
 
 ## Installation
 
-1. Install [Tampermonkey](https://www.tampermonkey.net/) for your browser.
-2. Click **Create a new script** in the Tampermonkey dashboard.
-3. Paste the contents of `purple-tuxedo-4.2.2.user.js` and save.
-4. Navigate to any Reddit thread. The script activates automatically.
+1. Clone or download this repository.
+2. Open Chrome and navigate to `chrome://extensions`.
+3. Enable **Developer mode** (toggle in the top right).
+4. Click **Load unpacked** and select the `extension/` folder.
+5. Navigate to any Reddit thread. The extension activates automatically.
 
 ---
 
 ## Configuration
 
-All tunable values are in the `DEFAULT_CONFIG` object near the top of the
+All tunable values are in the `CONFIG` object near the top of the
 content.js file. Edit them directly and reload the page.
 
 ```js
-const DEFAULT_CONFIG = {
+const CONFIG = {
     MIN_LENGTH:           200,   // Minimum character count for a comment to survive on length alone
     SCORE_NUKE_THRESHOLD: 15,    // Slop score at or above this triggers hiding/shaming
     ENABLE_NUKE_BY_SCORE: true,  // false = only nuke by length, ignore score entirely
@@ -166,14 +165,10 @@ The script handles this in `extractCommentText()` using three fallback strategie
    concatenates them, skipping anything inside code blocks, links, or
    blockquotes.
 
-Comments are not processed the moment they appear in the DOM. Instead, they are
-registered with an `IntersectionObserver`, which watches for them to enter the
-visible area of the screen. This means the script only does work on comments you
-are actually about to read, rather than processing the entire thread at once.
-
 A `MutationObserver` watches the page for new comment elements being added
-dynamically (which Reddit does as you scroll or expand threads), and registers
-each new comment with the `IntersectionObserver` when it appears.
+dynamically (which Reddit does as you scroll or expand threads). New comments
+are queued and processed on the next animation frame via `requestAnimationFrame`,
+which keeps the work off the critical path and avoids blocking scrolling.
 
 ---
 
@@ -194,15 +189,14 @@ each new comment with the `IntersectionObserver` when it appears.
 - **Grammar fixes are English-only.** The fix dictionary is English. The script
   skips fixing on threads it does not identify as English, but the dictionary
   would need language-specific versions to work properly on other languages.
-  However, the grammar service has been split into it's own file, and creating
+  However, the grammar service has been split into its own file, and creating
   the same functionality for other languages should be fairly trivial.
 
 ---
 
 ## Possible future work
 
-- Language packs for multiple language support running at the same time
-  Norwegian, German, French, and Spanish (would require
+- Language packs for Norwegian, German, French, and Spanish (would require
   per-comment language detection rather than per-thread).
 
 - Extracting `GrammarService` as a plugin interface so language packs can be
@@ -216,7 +210,8 @@ each new comment with the `IntersectionObserver` when it appears.
 ## Version history
 
 | Version | Summary |
-| 4.2.4 | Refactored from violentmonkey userscript to Chrome extension | 
-| 4.2.3 | Fixed Treewalker boundries |
+|---|---|
+| 4.2.4 | Fixed short comments surviving length filter; extraction no longer falls through to text node walker when a known element is found |
+| 4.2.3 | Fixed TreeWalker boundaries; refactored to Chrome extension |
 | 4.2.2 | Fixed regex lastIndex bug, fixed k/M upvote parsing, removed stale child cache |
 | 4.2.1 | Reordered Shadow DOM selectors, added debug logging for short extractions |
