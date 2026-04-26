@@ -532,6 +532,13 @@
             const isTooShort  = cleanText.length < CONFIG.MIN_LENGTH;
             const isTooSloppy = CONFIG.ENABLE_NUKE_BY_SCORE && score >= CONFIG.SCORE_NUKE_THRESHOLD;
 
+            // Grammar fixes run before the hide decision — intentionally.
+            // Do not move this after isTooShort/isTooSloppy to "skip work" on
+            // comments that will be hidden. This was attempted and produces a
+            // race condition: the comment is already rendered when processComment
+            // runs, so there is a visible window between render and hide where
+            // the comment appears unfixed. The saving is negligible; the artifact
+            // is not. Fix runs unconditionally on every evaluated comment.
             if (CONFIG.ENABLE_GRAMMAR_FIXES) {
                 this.applyFixesToTextNodes(comment);
             }
