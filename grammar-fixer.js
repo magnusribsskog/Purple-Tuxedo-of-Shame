@@ -80,6 +80,7 @@ const GrammarFixer = {
         "wouldnt":  { fix: "wouldn't",  category: "grammar", score: 2 },
         "youre":    { fix: "you're",    category: "grammar", score: 6 },
         "i":        { fix: "I",         category: "grammar", score: 4 },
+        "im":       { fix: "I'm",      category: "grammar", score: 5 },
 
         // Slang
         "cuz":   { fix: "because",       category: "slang", score: 4 },
